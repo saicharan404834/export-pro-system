@@ -4,8 +4,8 @@ services:
     name: bls-exportpro-backend
     env: node
     plan: starter
-    buildCommand: cd bls-exportpro/backend && yarn install && yarn build
-    startCommand: cd bls-exportpro/backend && yarn start
+    buildCommand: cd bls-exportpro/backend && npm install && npm run build
+    startCommand: cd bls-exportpro/backend && npm run prod:start
     envVars:
       - key: NODE_ENV
         value: production
