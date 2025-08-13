@@ -89,10 +89,14 @@ const server = app.listen(PORT, async () => {
 
 process.on('unhandledRejection', (err: Error) => {
   console.error('Unhandled Rejection:', err);
-  // reportSchedulerService.stopScheduler(); // Temporarily disabled
-  server.close(() => {
-    process.exit(1);
-  });
+  // Don't exit in production, just log the error
+  if (process.env.NODE_ENV === 'production') {
+    console.error('Error in production:', err);
+  } else {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
 });
 
 process.on('SIGTERM', () => {
