@@ -4,8 +4,8 @@ services:
     name: bls-exportpro-backend
     env: node
     plan: starter
-    buildCommand: cd bls-exportpro/backend && npm install && npm run build
-    startCommand: cd bls-exportpro/backend && npm start
+    buildCommand: cd bls-exportpro/backend && yarn install && yarn build
+    startCommand: cd bls-exportpro/backend && yarn start
     envVars:
       - key: NODE_ENV
         value: production
@@ -13,16 +13,38 @@ services:
         value: 5001
       - key: API_PREFIX
         value: /api
-      - key: DATABASE_URL
-        value: sqlite:///data/database.sqlite
+      - key: UPLOAD_DIR
+        value: /opt/render/project/src/bls-exportpro/backend/uploads
+      - key: DATA_DIR
+        value: /opt/render/project/src/bls-exportpro/backend/data
+      - key: DB_TYPE
+        value: sqlite
+      - key: DB_PATH
+        value: /opt/render/project/src/bls-exportpro/backend/data/pharma.db
       - key: JWT_SECRET
         generateValue: true
+      - key: JWT_EXPIRY
+        value: 24h
+      - key: MAX_FILE_SIZE
+        value: 10mb
+      - key: ALLOWED_FILE_TYPES
+        value: .xlsx,.xls,.pdf
       - key: CORS_ORIGIN
         value: https://bls-exportpro-frontend.onrender.com
+      - key: INVOICE_DIR
+        value: /opt/render/project/src/bls-exportpro/backend/uploads/invoices
+      - key: PACKING_LIST_DIR
+        value: /opt/render/project/src/bls-exportpro/backend/uploads/packing-lists
+      - key: PURCHASE_ORDER_DIR
+        value: /opt/render/project/src/bls-exportpro/backend/uploads/purchase-orders
+      - key: TEMP_DIR
+        value: /opt/render/project/src/bls-exportpro/backend/uploads/temp
+      - key: EXCEL_DIR
+        value: /opt/render/project/src/bls-exportpro/backend/uploads/excel
     disk:
       name: data
-      mountPath: /opt/render/project/src/bls-exportpro/backend/data
-      sizeGB: 1
+      mountPath: /opt/render/project/src/bls-exportpro/backend
+      sizeGB: 2
 
   # Frontend Service
   - type: web
