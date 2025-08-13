@@ -4,15 +4,8 @@ services:
     name: bls-exportpro-backend
     env: node
     plan: starter
-    buildCommand: |
-      cd bls-exportpro/backend
-      npm install
-      npm run prod:build
-    startCommand: |
-      cd bls-exportpro/backend
-      chmod -R 777 uploads
-      chmod -R 777 data
-      npm run prod:start
+    buildCommand: cd bls-exportpro/backend && npm install && npm run prod:build
+    startCommand: cd bls-exportpro/backend && NODE_ENV=production npm run start
     envVars:
       - key: NODE_ENV
         value: production
