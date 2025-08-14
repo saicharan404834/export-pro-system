@@ -22,7 +22,6 @@ services:
   - type: web
     name: bls-exportpro-frontend
     env: static
-    plan: free
     buildCommand: cd bls-exportpro/frontend && chmod +x build.sh && ./build.sh
     staticPublishPath: bls-exportpro/frontend/dist
     routes:
