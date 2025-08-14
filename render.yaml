@@ -15,10 +15,7 @@ services:
       - key: API_PREFIX
         value: /api
       - key: CORS_ORIGIN
-        fromService:
-          type: web
-          name: bls-exportpro-frontend
-          property: url
+        value: "*"
     healthCheckPath: /health
 
   # Frontend Static Site
@@ -34,7 +31,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: bls-exportpro-backend
-          property: url
+        generateValue: true
