@@ -201,21 +201,31 @@ const PackingLists: React.FC = () => {
             <select
               value={newOrderId}
               onChange={e => setNewOrderId(e.target.value)}
-              className="p-2 w-full"
+              className="p-2 w-full bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              style={{ 
+                backgroundColor: '#1f2937', 
+                color: 'white',
+                borderColor: '#4b5563'
+              }}
             >
-              <option value="">Select Order</option>
+              <option value="" style={{ backgroundColor: '#1f2937', color: '#d1d5db', padding: '8px' }}>Select Order</option>
               {orders.map(o => (
-                <option key={o.id} value={o.id}>{o.orderNumber}</option>
+                <option key={o.id} value={o.id} style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>{o.orderNumber}</option>
               ))}
             </select>
             <select
               value={newInvoiceId}
               onChange={e => setNewInvoiceId(e.target.value)}
-              className="p-2 w-full"
+              className="p-2 w-full bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              style={{ 
+                backgroundColor: '#1f2937', 
+                color: 'white',
+                borderColor: '#4b5563'
+              }}
             >
-              <option value="">Select Invoice (optional)</option>
+              <option value="" style={{ backgroundColor: '#1f2937', color: '#d1d5db', padding: '8px' }}>Select Invoice (optional)</option>
               {invoices.map(i => (
-                <option key={i.id} value={i.id}>{i.invoiceNumber}</option>
+                <option key={i.id} value={i.id} style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>{i.invoiceNumber}</option>
               ))}
             </select>
             <div className="flex space-x-2">
@@ -306,12 +316,17 @@ const PackingLists: React.FC = () => {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white/40"
+            className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            style={{ 
+              backgroundColor: '#1f2937', 
+              color: 'white',
+              borderColor: '#4b5563'
+            }}
           >
-            <option value="all">All Status</option>
-            <option value="draft">Draft</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="shipped">Shipped</option>
+            <option value="all" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>All Status</option>
+            <option value="draft" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Draft</option>
+            <option value="confirmed" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Confirmed</option>
+            <option value="shipped" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Shipped</option>
           </select>
         </div>
       </GlassCard>

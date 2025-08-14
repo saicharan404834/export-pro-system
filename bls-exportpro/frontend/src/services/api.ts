@@ -1,5 +1,7 @@
-// Use relative path to enable Vite dev server proxy
-const API_BASE_URL = '/api';
+// API configuration for both development and production
+const API_BASE_URL = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api'; // Use relative path for development with Vite proxy
 
 export class ApiService {
   private async request<T>(url: string, options?: RequestInit): Promise<T> {

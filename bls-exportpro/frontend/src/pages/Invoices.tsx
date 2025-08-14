@@ -505,25 +505,35 @@ const Invoices: React.FC = () => {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white/40"
+            className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            style={{ 
+              backgroundColor: '#1f2937', 
+              color: 'white',
+              borderColor: '#4b5563'
+            }}
           >
-            <option value="all">All Status</option>
-            <option value="draft">Draft</option>
-            <option value="pending">Pending</option>
-            <option value="paid">Paid</option>
-            <option value="overdue">Overdue</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="all" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>All Status</option>
+            <option value="draft" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Draft</option>
+            <option value="pending" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Pending</option>
+            <option value="paid" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Paid</option>
+            <option value="overdue" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Overdue</option>
+            <option value="cancelled" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Cancelled</option>
           </select>
           
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white/40"
+            className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            style={{ 
+              backgroundColor: '#1f2937', 
+              color: 'white',
+              borderColor: '#4b5563'
+            }}
           >
-            <option value="all">All Types</option>
-            <option value="proforma">Proforma</option>
-            <option value="pre-shipment">Pre-shipment</option>
-            <option value="post-shipment">Post-shipment</option>
+            <option value="all" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>All Types</option>
+            <option value="proforma" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Proforma</option>
+            <option value="pre-shipment" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Pre-shipment</option>
+            <option value="post-shipment" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Post-shipment</option>
           </select>
         </div>
       </GlassCard>

@@ -1,0 +1,40 @@
+version: "1"
+services:
+  # Backend API Service
+  - type: web
+    name: bls-exportpro-backend
+    env: node
+    plan: free
+    buildCommand: cd bls-exportpro/backend && chmod +x build.sh && ./build.sh
+    startCommand: cd bls-exportpro/backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5001
+      - key: API_PREFIX
+        value: /api
+      - key: CORS_ORIGIN
+        fromService:
+          type: web
+          name: bls-exportpro-frontend
+          property: url
+    healthCheckPath: /health
+
+  # Frontend Static Site
+  - type: web
+    name: bls-exportpro-frontend
+    env: static
+    plan: free
+    buildCommand: cd bls-exportpro/frontend && chmod +x build.sh && ./build.sh
+    staticPublishPath: bls-exportpro/frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: bls-exportpro-backend
+          property: url

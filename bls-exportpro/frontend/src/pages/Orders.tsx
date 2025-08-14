@@ -38,6 +38,8 @@ interface Order {
   shippingAddress: string;
   billingAddress: string;
   notes?: string;
+  shippingMarks?: string;
+  specialInstructions?: string;
 }
 
 interface OrderItem {
@@ -48,6 +50,8 @@ interface OrderItem {
   unitPrice: number;
   totalPrice: number;
   hsCode?: string;
+  batchNumber?: string;
+  expiryDate?: string;
 }
 
 interface Customer {
@@ -144,36 +148,89 @@ const Orders: React.FC = () => {
 
   const fetchCustomers = async () => {
     try {
-      const data = await api.get<Customer[]>('/customers');
-      setCustomers(data);
+      const data = await api.get<any[]>('/order-creation/customers');
+      // Normalize the API response to match our interface
+      const normalizedCustomers: Customer[] = data.map((customer: any) => ({
+        id: customer.id,
+        name: customer.company_name || customer.name || '',
+        country: customer.country || '',
+        email: customer.email || '',
+        phone: customer.phone || ''
+      }));
+      setCustomers(normalizedCustomers);
     } catch (error) {
       console.error('Error fetching customers:', error);
+      // Fallback to empty array to prevent UI issues
+      setCustomers([]);
     }
   };
 
   const fetchProducts = async () => {
     try {
-      const data = await api.get<Product[]>('/products');
-      setProducts(data);
+      const data = await api.get<any[]>('/order-creation/products');
+      // Normalize the API response to match our interface
+      const normalizedProducts: Product[] = data.map((product: any) => ({
+        id: product.id,
+        name: `${product.brand_name || product.name || ''} (${product.generic_name || ''}) ${product.strength || ''}`.trim(),
+        price: product.rate_usd || product.price || 0,
+        currency: 'USD',
+        hsCode: product.hs_code || product.hsCode || '',
+        stock: product.stock || 0
+      }));
+      setProducts(normalizedProducts);
     } catch (error) {
       console.error('Error fetching products:', error);
+      // Fallback to empty array to prevent UI issues
+      setProducts([]);
     }
   };
 
   const handleCreateOrder = async () => {
     try {
+      // Validate required fields
+      if (!formData.customerId) {
+        alert('Please select a customer');
+        return;
+      }
+      
+      if (!formData.items || formData.items.length === 0) {
+        alert('Please add at least one item to the order');
+        return;
+      }
+
+      // Validate items have required fields
+      const invalidItems = formData.items.filter(item => 
+        !item.productId || !item.quantity || item.quantity <= 0 || !item.unitPrice || item.unitPrice <= 0
+      );
+      
+      if (invalidItems.length > 0) {
+        alert('Please complete all item details (product, quantity, price)');
+        return;
+      }
+
       const orderData = {
-        ...formData,
-        orderDate: new Date().toISOString(),
-        totalAmount: formData.items?.reduce((sum, item) => sum + item.totalPrice, 0) || 0
+        customerId: formData.customerId,
+        currency: formData.currency || 'USD',
+        items: formData.items.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          batchNumber: item.batchNumber || 'BATCH001',
+          expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+        })),
+        deliveryDate: formData.deliveryDate ? new Date(formData.deliveryDate).toISOString() : undefined,
+        shippingMarks: formData.shippingMarks || '',
+        specialInstructions: formData.notes || '',
       };
       
       await api.post('/orders/create', orderData);
       await fetchOrders();
       setShowOrderForm(false);
       resetForm();
+      alert('Order created successfully!');
     } catch (error) {
       console.error('Error creating order:', error);
+      alert('Failed to create order. Please check all required fields and try again.');
     }
   };
 
@@ -300,7 +357,8 @@ const Orders: React.FC = () => {
           <Button
             variant="primary"
             onClick={() => setShowOrderForm(true)}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 opacity-50 cursor-not-allowed"
+            disabled={true}
           >
             <Plus className="w-4 h-4" />
             <span>New Order</span>
@@ -376,15 +434,20 @@ const Orders: React.FC = () => {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white/40"
+            className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            style={{ 
+              backgroundColor: '#1f2937', 
+              color: 'white',
+              borderColor: '#4b5563'
+            }}
           >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="processing">Processing</option>
-            <option value="shipped">Shipped</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="all" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>All Status</option>
+            <option value="pending" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Pending</option>
+            <option value="confirmed" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Confirmed</option>
+            <option value="processing" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Processing</option>
+            <option value="shipped" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Shipped</option>
+            <option value="delivered" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Delivered</option>
+            <option value="cancelled" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>Cancelled</option>
           </select>
         </div>
       </GlassCard>
@@ -517,18 +580,33 @@ const Orders: React.FC = () => {
                       value={formData.customerId}
                       onChange={(e) => {
                         const customer = customers.find(c => c.id === e.target.value);
-                        setFormData({ 
-                          ...formData, 
+                        setFormData({
+                          ...formData,
                           customerId: e.target.value,
                           customerName: customer?.name || '',
                           customerCountry: customer?.country || ''
                         });
                       }}
-                      className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white/40"
+                      className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      style={{ 
+                        backgroundColor: '#1f2937', 
+                        color: 'white',
+                        borderColor: '#4b5563'
+                      }}
                     >
-                      <option value="">Select a customer...</option>
+                      <option value="" style={{ backgroundColor: '#1f2937', color: '#d1d5db', padding: '8px' }}>
+                        Select a customer...
+                      </option>
                       {customers.map((customer) => (
-                        <option key={customer.id} value={customer.id}>
+                        <option 
+                          key={customer.id} 
+                          value={customer.id}
+                          style={{ 
+                            backgroundColor: '#1f2937', 
+                            color: '#ffffff',
+                            padding: '8px 12px'
+                          }}
+                        >
                           {customer.name} - {customer.country}
                         </option>
                       ))}
@@ -542,10 +620,15 @@ const Orders: React.FC = () => {
                     <select
                       value={formData.currency}
                       onChange={(e) => setFormData({ ...formData, currency: e.target.value as 'USD' | 'INR' })}
-                      className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white/40"
+                      className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      style={{ 
+                        backgroundColor: '#1f2937', 
+                        color: 'white',
+                        borderColor: '#4b5563'
+                      }}
                     >
-                      <option value="USD">USD</option>
-                      <option value="INR">INR</option>
+                      <option value="USD" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>USD</option>
+                      <option value="INR" style={{ backgroundColor: '#1f2937', color: '#ffffff', padding: '8px' }}>INR</option>
                     </select>
                   </div>
                 </div>
@@ -575,11 +658,26 @@ const Orders: React.FC = () => {
                               <select
                                 value={item.productId}
                                 onChange={(e) => updateOrderItem(index, 'productId', e.target.value)}
-                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:border-white/40"
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                style={{ 
+                                  backgroundColor: '#1f2937', 
+                                  color: 'white',
+                                  borderColor: '#4b5563'
+                                }}
                               >
-                                <option value="">Select product...</option>
+                                <option value="" style={{ backgroundColor: '#1f2937', color: '#d1d5db', padding: '8px' }}>
+                                  Select product...
+                                </option>
                                 {products.map((product) => (
-                                  <option key={product.id} value={product.id}>
+                                  <option 
+                                    key={product.id} 
+                                    value={product.id}
+                                    style={{ 
+                                      backgroundColor: '#1f2937', 
+                                      color: '#ffffff',
+                                      padding: '8px 12px'
+                                    }}
+                                  >
                                     {product.name} - {product.currency} {product.price}
                                   </option>
                                 ))}
