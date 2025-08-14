@@ -1,8 +1,12 @@
-const API_BASE_URL = 'http://localhost:5001/api';
+// Use relative path to enable Vite dev server proxy
+const API_BASE_URL = '/api';
 
 export class ApiService {
   private async request<T>(url: string, options?: RequestInit): Promise<T> {
+    console.debug(`[ApiService] Request: GET ${API_BASE_URL}${url}`);
     const response = await fetch(`${API_BASE_URL}${url}`, {
+      // prevent cached 304 responses without body
+      cache: 'no-store',
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -14,7 +18,8 @@ export class ApiService {
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 
-    const json = await response.json();
+  const json = await response.json();
+  console.debug(`[ApiService] Response from ${API_BASE_URL}${url}:`, json);
 
     // Normalize common backend envelope { status/success, data, pagination }
     if (json && typeof json === 'object') {

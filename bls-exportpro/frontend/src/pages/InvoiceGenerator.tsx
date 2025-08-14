@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { api } from '../services/api';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Table } from '../components/Table';
@@ -55,13 +56,9 @@ export const InvoiceGenerator: React.FC = () => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/invoice-generator/orders');
-      const data = await response.json();
-      if (data.success) {
-        setOrders(data.data);
-      } else {
-        setError('Failed to fetch orders');
-      }
+    // Fetch list of orders directly (api returns unwrapped data array)
+    const ordersData = await api.get<Order[]>('/invoice-generator/orders');
+    setOrders(ordersData);
     } catch (err) {
       setError('Network error while fetching orders');
     } finally {
@@ -72,13 +69,9 @@ export const InvoiceGenerator: React.FC = () => {
   const fetchOrderDetails = async (orderId: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/invoice-generator/orders/${orderId}`);
-      const data = await response.json();
-      if (data.success) {
-        setSelectedOrder(data.data);
-      } else {
-        setError('Failed to fetch order details');
-      }
+    // Fetch single order details
+    const details = await api.get<OrderDetails>(`/invoice-generator/orders/${orderId}`);
+    setSelectedOrder(details);
     } catch (err) {
       setError('Network error while fetching order details');
     } finally {
@@ -89,21 +82,9 @@ export const InvoiceGenerator: React.FC = () => {
   const generateInvoice = async (orderId: string, type: 'PROFORMA INVOICE' | 'INVOICE') => {
     setGenerating(true);
     try {
-      const response = await fetch(`/api/invoice-generator/orders/${orderId}/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ type }),
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        // Open the PDF in a new tab
-        window.open(`${data.data.downloadUrl}`, '_blank');
-      } else {
-        setError('Failed to generate invoice');
-      }
+    // Generate invoice and open downloaded link
+    const result = await api.post<{ downloadUrl: string }>(`/invoice-generator/orders/${orderId}/generate`, { type });
+    window.open(result.downloadUrl, '_blank');
     } catch (err) {
       setError('Network error while generating invoice');
     } finally {
@@ -119,36 +100,36 @@ export const InvoiceGenerator: React.FC = () => {
     { key: 'order_date', label: 'Order Date', render: (value: string) => new Date(value).toLocaleDateString() },
     { key: 'status', label: 'Status' },
     { key: 'items_count', label: 'Items' },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (value: any, row: Order) => (
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            onClick={() => fetchOrderDetails(row.id)}
-          >
-            View Details
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => generateInvoice(row.id, 'PROFORMA INVOICE')}
-            disabled={generating}
-          >
-            {generating ? 'Generating...' : 'Proforma Invoice'}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => generateInvoice(row.id, 'INVOICE')}
-            disabled={generating}
-          >
-            {generating ? 'Generating...' : 'Commercial Invoice'}
-          </Button>
-        </div>
-      ),
-    },
+      {
+        key: 'actions',
+        label: 'Actions',
+        render: (_value: any, row: Order) => (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              onClick={() => fetchOrderDetails(row.id)}
+            >
+              View Details
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => generateInvoice(row.id, 'PROFORMA INVOICE')}
+              disabled={generating}
+            >
+              {generating ? 'Generating...' : 'Proforma Invoice'}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => generateInvoice(row.id, 'INVOICE')}
+              disabled={generating}
+            >
+              {generating ? 'Generating...' : 'Commercial Invoice'}
+            </Button>
+          </div>
+        ),
+      },
   ];
 
   return (

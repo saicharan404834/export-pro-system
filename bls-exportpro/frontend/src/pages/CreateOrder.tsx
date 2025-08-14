@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { api } from '../services/api';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Plus, Trash2 } from 'lucide-react';
@@ -30,16 +31,33 @@ interface OrderItem {
 export const CreateOrder: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  
+  // remove duplicate entries by a key function (preserves order)
+  const uniqueBy = <T,>(arr: T[], keyFn: (t: T) => string): T[] => {
+    const seen = new Set<string>();
+    const out: T[] = [];
+    for (const item of arr) {
+      try {
+        const k = keyFn(item);
+        if (!seen.has(k)) { seen.add(k); out.push(item); }
+      } catch (e) {
+        out.push(item as T);
+      }
+    }
+    return out;
+  };
+
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const today = new Date().toISOString().split('T')[0];
   const [formData, setFormData] = useState({
     customerId: '',
     orderNumber: '',
-    orderDate: new Date().toISOString().split('T')[0],
-    estimatedShipmentDate: ''
+    orderDate: today,
+    estimatedShipmentDate: today
   });
 
   const [items, setItems] = useState<OrderItem[]>([
@@ -53,16 +71,14 @@ export const CreateOrder: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [productsRes, customersRes] = await Promise.all([
-        fetch('/api/order-creation/products'),
-        fetch('/api/order-creation/customers')
+      // use ApiService for consistent envelope handling and no-cache
+      const [productsData, customersData] = await Promise.all([
+        api.get<any>('/order-creation/products'),
+        api.get<any>('/order-creation/customers')
       ]);
-
-      const productsData = await productsRes.json();
-      const customersData = await customersRes.json();
-
-      if (productsData.success) setProducts(productsData.data);
-      if (customersData.success) setCustomers(customersData.data);
+      // dedupe products by id (fallback to brand+generic) to avoid duplicate dropdown entries
+      setProducts(uniqueBy(productsData, (p: any) => p.id ?? `${p.brand_name ?? ''}::${p.generic_name ?? ''}`));
+      setCustomers(customersData);
     } catch (err) {
       setError('Failed to fetch data');
     } finally {
@@ -146,8 +162,8 @@ export const CreateOrder: React.FC = () => {
         setFormData({
           customerId: '',
           orderNumber: '',
-          orderDate: new Date().toISOString().split('T')[0],
-          estimatedShipmentDate: ''
+          orderDate: today,
+          estimatedShipmentDate: today
         });
         setItems([{ productId: '', quantity: 0 }]);
       } else {

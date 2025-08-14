@@ -31,7 +31,7 @@
   }
 
   .light body {
-    background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 50%, #cbd5e1 100%);
+    background-color: #ffffff;
     color: var(--text-primary);
   }
 
@@ -41,50 +41,6 @@
     color: var(--text-primary);
     position: relative;
     overflow-x: hidden;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 20% 80%, var(--bls-blue-primary, #2563eb) 0, transparent 60%),
-      radial-gradient(circle at 80% 20%, var(--bls-purple, #7c3aed) 0, transparent 60%),
-      radial-gradient(circle at 40% 40%, var(--bls-teal, #06b6d4) 0, transparent 60%),
-      radial-gradient(circle at 90% 70%, var(--bls-orange, #f97316) 0, transparent 60%);
-    opacity: 0.3;
-    z-index: -1;
-  }
-
-  .light body::before {
-    opacity: 0.15;
-    background: 
-      radial-gradient(circle at 20% 80%, #dbeafe 0, transparent 50%),
-      radial-gradient(circle at 80% 20%, #e9d5ff 0, transparent 50%),
-      radial-gradient(circle at 40% 40%, #ccfbf1 0, transparent 50%),
-      radial-gradient(circle at 90% 70%, #fed7aa 0, transparent 50%);
-  }
-
-  body::after {
-    content: '';
-    position: fixed;
-    top: -50%;
-    left: -50%;
-    right: -50%;
-    bottom: -50%;
-    background: 
-      radial-gradient(circle at 30% 70%, var(--bls-blue-light, #60a5fa) 0, transparent 40%),
-      radial-gradient(circle at 70% 30%, var(--bls-purple, #7c3aed) 0, transparent 40%),
-      radial-gradient(circle at 50% 50%, var(--bls-teal, #06b6d4) 0, transparent 40%);
-    opacity: 0.2;
-    z-index: -1;
-  }
-
-  .light body::after {
-    opacity: 0.08;
   }
 }
 

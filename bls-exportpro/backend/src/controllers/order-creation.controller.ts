@@ -1,18 +1,24 @@
 import { Request, Response } from 'express';
 import { getDatabase } from '../config/sqlite.config';
+import fs from 'fs';
+import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 export class OrderCreationController {
 
   async getProducts(req: Request, res: Response) {
     try {
+      // Fetch products from SQLite, deduplicating by brand_name and generic_name
       const db = await getDatabase();
-      const products = await db.all('SELECT * FROM products ORDER BY brand_name');
-      
-      res.json({
-        success: true,
-        data: products
-      });
+      const products = await db.all(`
+        SELECT id, brand_name, generic_name, strength, unit_pack, rate_usd, hs_code, batch_prefix
+        FROM products 
+        WHERE id IN (
+          SELECT MIN(id) FROM products GROUP BY brand_name, generic_name
+        )
+        ORDER BY brand_name
+      `);
+      res.json({ success: true, data: products });
     } catch (error) {
       console.error('Get products error:', error);
       res.status(500).json({
@@ -25,13 +31,17 @@ export class OrderCreationController {
 
   async getCustomers(req: Request, res: Response) {
     try {
+      // Fetch customers from SQLite, deduplicating by company_name
       const db = await getDatabase();
-      const customers = await db.all('SELECT * FROM customers ORDER BY company_name');
-      
-      res.json({
-        success: true,
-        data: customers
-      });
+      const customers = await db.all(`
+        SELECT id, company_name, contact_person, address, city, country, phone, email, created_at
+        FROM customers 
+        WHERE id IN (
+          SELECT MIN(id) FROM customers GROUP BY company_name, city, country
+        )
+        ORDER BY company_name
+      `);
+      res.json({ success: true, data: customers });
     } catch (error) {
       console.error('Get customers error:', error);
       res.status(500).json({

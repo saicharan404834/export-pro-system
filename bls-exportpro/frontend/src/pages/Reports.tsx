@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/Button';
-import { api } from '../services/api';
 import {
   FileText,
   Download,
@@ -32,10 +31,14 @@ interface ReportConfig {
 }
 
 const Reports: React.FC = () => {
-  const [selectedReport, setSelectedReport] = useState<string | null>(null);
+  // Removed unused api import and selectedReport state
+  const today = new Date().toISOString().split('T')[0];
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split('T')[0];
   const [dateRange, setDateRange] = useState({
-    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0]
+    startDate: thirtyDaysAgo,
+    endDate: today
   });
   const [generating, setGenerating] = useState(false);
   const [downloadFormat, setDownloadFormat] = useState<'pdf' | 'excel'>('excel');

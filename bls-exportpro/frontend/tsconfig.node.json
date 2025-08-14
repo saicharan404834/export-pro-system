@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+  "declarationMap": true,
+  "emitDeclarationOnly": true,
     "target": "ES2022",
     "lib": ["ES2023"],
     "module": "ESNext",
@@ -9,7 +13,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "noEmit": true,
+  // noEmit removed to allow composite emit
     "allowSyntheticDefaultImports": true,
     "strict": true
   },

@@ -1,6 +1,8 @@
 import sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
 import path from 'path';
+import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
 
 let db: Database | null = null;
 
@@ -16,6 +18,8 @@ export async function initDatabase(): Promise<Database> {
 
   // Create tables
   await createTables();
+  // Seed initial data from JSON files
+  await seedInitialData();
   return db;
 }
 
@@ -158,5 +162,117 @@ export async function closeDatabase() {
   if (db) {
     await db.close();
     db = null;
+  }
+}
+
+/**
+ * Load JSON data files and insert into the database if not exists
+ */
+async function seedInitialData() {
+  if (!db) return;
+  console.log('🔄 Seeding initial data into SQLite...');
+  try {
+  const dataDir = path.join(__dirname, '../../data');
+  // Seed customers
+  const custFile = path.join(dataDir, 'customers.json');
+  if (fs.existsSync(custFile)) {
+    const customers = JSON.parse(fs.readFileSync(custFile, 'utf8'));
+    for (const c of customers) {
+      await db.run(
+        `INSERT OR IGNORE INTO customers (id, company_name, contact_person, address, city, country, phone, email)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        c.id,
+        c.companyName || c.company_name,
+        c.contactPerson || c.contact_person || null,
+        typeof c.address === 'object' ? c.address.street : c.address || null,
+        c.address?.city || c.city || null,
+        c.address?.country || c.country || null,
+        c.phone || null,
+        c.email || null
+      );
+    }
+  }
+  // Seed products
+  const prodFile = path.join(dataDir, 'products.json');
+  if (fs.existsSync(prodFile)) {
+    const products = JSON.parse(fs.readFileSync(prodFile, 'utf8'));
+    for (const p of products) {
+      await db.run(
+        `INSERT OR IGNORE INTO products (id, brand_name, generic_name, strength, unit_pack, rate_usd, hs_code, batch_prefix)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        p.id,
+        p.brandName || p.brand_name,
+        p.genericName || p.generic_name,
+        p.strength || null,
+        p.dosageForm || p.unit_pack || null,
+        p.unitPrice ?? p.rate_usd ?? null,
+        p.hsnCode || p.hs_code || null,
+        p.productCode || p.batch_prefix || null
+      );
+    }
+  }
+  // Seed orders and order_items
+  const orderFile = path.join(dataDir, 'orders.json');
+  if (fs.existsSync(orderFile)) {
+    const ordersData = JSON.parse(fs.readFileSync(orderFile, 'utf8'));
+    for (const o of ordersData) {
+      // Insert order
+      await db.run(
+        `INSERT OR IGNORE INTO orders (id, customer_id, order_number, order_date, estimated_shipment_date, status, total_amount, currency)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        o.id,
+        o.customerId,
+        o.orderNumber || o.order_number,
+        (o.orderDate || o.order_date || '').split('T')[0] || null,
+        (o.deliveryDate || o.estimatedShipmentDate || '').split('T')[0] || null,
+        o.status || 'pending',
+        o.totalAmount ?? o.total_amount ?? 0,
+        o.currency || 'USD'
+      );
+      // Insert order items
+      if (Array.isArray(o.items)) {
+        for (const it of o.items) {
+          const itemId = it.id || uuidv4();
+          await db.run(
+            `INSERT OR IGNORE INTO order_items (id, order_id, product_id, quantity, rate_usd, amount, batch_number, mfg_date, exp_date)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            itemId,
+            o.id,
+            it.productId,
+            it.quantity,
+            it.unitPrice ?? it.rate_usd ?? 0,
+            it.totalPrice ?? it.amount ?? 0,
+            it.batchNumber || it.batch_number || null,
+            it.manufacturingDate?.split('T')[0] || null,
+            it.expiryDate?.split('T')[0] || it.expDate?.split('T')[0] || null
+          );
+        }
+      }
+    }
+    }
+    // Seed simple packing list entries for each order
+    console.log('🔄 Seeding packing lists for orders...');
+    const ordersForPl = await db.all(`SELECT id, order_number, estimated_shipment_date FROM orders`);
+    for (const o of ordersForPl) {
+      const plId = uuidv4();
+      const plNumber = o.order_number.replace(/[/\\]/g, '-') + '-' + 'PL';
+      await db.run(
+        `INSERT OR IGNORE INTO packing_lists (id, packing_list_number, order_id, shipping_date, manufacturing_site, status, total_shippers, total_gross_weight, total_net_weight)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        plId,
+        plNumber,
+        o.id,
+        o.estimated_shipment_date || null,
+        'Site A - India',
+        'confirmed',
+        0,
+        0,
+        0
+      );
+    }
+    console.log('✅ Seeding packing lists complete');
+    console.log('✅ Seeding initial data complete');
+  } catch (error) {
+    console.error('❌ Error during seeding initial data:', error);
   }
 }

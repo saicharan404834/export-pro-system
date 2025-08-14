@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { packingListService } from '../services/packing-list.service';
+import { getDatabase } from '../config/sqlite.config';
 import { z } from 'zod';
 
 const generatePackingListSchema = z.object({
@@ -50,20 +51,28 @@ export const listPackingLists = asyncHandler(async (
   req: Request,
   res: Response
 ) => {
-  const result = await packingListService.listPackingLists({
-    page: req.query.page ? Number(req.query.page) : undefined,
-    limit: req.query.limit ? Number(req.query.limit) : undefined,
-    orderId: req.query.orderId as string,
-    invoiceId: req.query.invoiceId as string,
-  });
-  
-  res.json({
-    status: 'success',
-    data: result.data,
-    pagination: {
-      total: result.total,
-      page: result.page,
-      totalPages: result.totalPages,
-    },
-  });
+  const db = await getDatabase();
+  const lists = await db.all(`
+    SELECT
+      pl.id,
+      pl.packing_list_number AS packingListNumber,
+      pl.order_id AS orderId,
+      o.order_number AS orderNumber,
+      pl.invoice_id AS invoiceId,
+      i.invoice_number AS invoiceNumber,
+      c.company_name AS customerName,
+      c.country AS customerCountry,
+      pl.manufacturing_site AS manufacturingSite,
+      pl.shipping_date AS shippingDate,
+      pl.status,
+      pl.total_shippers AS totalShippers,
+      pl.total_gross_weight AS totalGrossWeight,
+      pl.total_net_weight AS totalNetWeight
+    FROM packing_lists pl
+    LEFT JOIN orders o ON pl.order_id = o.id
+    LEFT JOIN invoices i ON pl.invoice_id = i.id
+    LEFT JOIN customers c ON o.customer_id = c.id
+    ORDER BY pl.created_at DESC
+  `);
+  res.json({ success: true, data: lists });
 });

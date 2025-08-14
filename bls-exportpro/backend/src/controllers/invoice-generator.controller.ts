@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { InvoiceGeneratorService } from '../services/invoice-generator.service';
 import { getDatabase } from '../config/sqlite.config';
+import fs from 'fs';
+import path from 'path';
 
 export class InvoiceGeneratorController {
   private invoiceService = new InvoiceGeneratorService();
@@ -45,21 +47,28 @@ export class InvoiceGeneratorController {
   async listInvoices(req: Request, res: Response) {
     try {
       const db = await getDatabase();
-      const invoices = await db.all(`
-        SELECT i.*, o.order_number, o.customer_id, c.company_name AS customer_name, c.country AS customer_country
-        FROM invoices i
-        LEFT JOIN orders o ON i.order_id = o.id
+      const orders = await db.all(`
+        SELECT 
+          o.*, 
+          c.company_name as customer_name,
+          c.city as customer_city,
+          c.country as customer_country,
+          COUNT(oi.id) as items_count
+        FROM orders o
         LEFT JOIN customers c ON o.customer_id = c.id
-        ORDER BY i.created_at DESC
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        GROUP BY o.id
+        ORDER BY o.created_at DESC
       `);
-
-      res.json({ success: true, data: invoices });
+  // Return invoices (orders with invoice info)
+      res.json({ success: true, data: orders });
     } catch (error) {
-      console.error('List invoices error:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch invoices' });
+      console.error('List packing lists error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch packing lists' });
     }
   }
-
+  
+  // List packing lists entries
   async listPackingLists(req: Request, res: Response) {
     try {
       const db = await getDatabase();
@@ -71,11 +80,10 @@ export class InvoiceGeneratorController {
         LEFT JOIN customers c ON o.customer_id = c.id
         ORDER BY pl.created_at DESC
       `);
-
       res.json({ success: true, data: lists });
     } catch (error) {
       console.error('List packing lists error:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch packing lists' });
+      res.status(500).json({ success: false, message: 'Failed to fetch packing lists', error: error instanceof Error ? error.message : 'Unknown error' });
     }
   }
   async downloadInvoice(req: Request, res: Response) {

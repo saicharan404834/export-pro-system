@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../components/ui/GlassCard';
-import { StatusBadge } from '../components/ui/StatusBadge';
 import { Button } from '../components/Button';
 import { api } from '../services/api';
 import {
   Package,
   Plus,
   Search,
-  Filter,
   Download,
   Eye,
   Calendar,
-  Hash,
   Building,
-  Weight,
   Layers,
   Clock,
   AlertCircle,
@@ -54,7 +50,8 @@ interface PackingList {
   shippingDate: string;
   manufacturingSite: string;
   status: 'draft' | 'confirmed' | 'shipped';
-  items: PackingListItem[];
+  // loaded only when viewing details
+  items?: PackingListItem[];
   totalShippers: number;
   totalGrossWeight: number;
   totalNetWeight: number;
@@ -69,92 +66,83 @@ const PackingLists: React.FC = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [newOrderId, setNewOrderId] = useState('');
+  const [newInvoiceId, setNewInvoiceId] = useState('');
+  // available orders and invoices for creating packing list
+  const [orders, setOrders] = useState<{ id: string; orderNumber: string }[]>([]);
+  const [invoices, setInvoices] = useState<{ id: string; invoiceNumber: string }[]>([]);
+
+  // remove duplicate entries by a key function (preserves order)
+  const uniqueBy = <T,>(arr: T[], keyFn: (t: T) => string): T[] => {
+    const seen = new Set<string>();
+    const out: T[] = [];
+    for (const item of arr) {
+      try {
+        const k = keyFn(item);
+        if (!seen.has(k)) { seen.add(k); out.push(item); }
+      } catch (e) {
+        // if key extraction fails, push item to avoid data loss
+        out.push(item as T);
+      }
+    }
+    return out;
+  };
+
+  // Fetch packing lists from API for table view
+  const fetchPackingLists = async () => {
+    setLoading(true);
+    try {
+      const lists = await api.get<PackingList[]>('/packing-list');
+      setPackingLists(lists);
+    } catch (err) {
+      console.error('Error fetching packing lists:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchPackingLists();
   }, []);
-
-  const fetchPackingLists = async () => {
-    try {
-      const resp = await api.get<any>('/invoice-generator/packing-lists');
-      const rawList: any[] = Array.isArray(resp) ? resp : (resp?.packingLists ?? resp?.data ?? []);
-      const normalized: PackingList[] = rawList.map((pl: any) => ({
-        id: pl.id,
-        packingListNumber: pl.packingListNumber ?? pl.packing_list_number ?? 'PL',
-        orderId: pl.orderId ?? pl.order_id,
-        orderNumber: pl.orderNumber ?? pl.order_number ?? '—',
-        invoiceId: pl.invoiceId ?? pl.invoice_id,
-        invoiceNumber: pl.invoiceNumber ?? pl.invoice_number ?? '—',
-        customerName: pl.customerName ?? pl.customer_name ?? '—',
-        customerCountry: pl.customerCountry ?? pl.customer_country ?? '—',
-        shippingDate: (pl.shippingDate ?? pl.shipping_date ?? pl.createdAt ?? pl.created_at ?? new Date()).toString().split('T')[0],
-        manufacturingSite: pl.manufacturingSite ?? pl.manufacturing_site ?? 'Site A - India',
-        status: pl.status ?? 'confirmed',
-        totalShippers: pl.totalShippers ?? pl.total_shippers ?? pl.totalPackages ?? 0,
-        totalGrossWeight: pl.totalGrossWeight ?? pl.total_gross_weight ?? 0,
-        totalNetWeight: pl.totalNetWeight ?? pl.total_net_weight ?? 0,
-        items: (pl.items ?? []).map((it: any) => ({
-          productId: it.productId ?? it.product_id,
-          productName: it.productName ?? it.product?.brandName ?? it.brand_name ?? 'Item',
-          brandName: it.brandName ?? it.product?.brandName ?? it.brand_name ?? '—',
-          genericName: it.genericName ?? it.product?.genericName ?? it.generic_name ?? '—',
-          strength: it.strength ?? it.product?.strength ?? '—',
-          packSize: it.packSize ?? it.product?.unit_pack ?? it.unit_pack ?? '—',
-          batches: (it.batches ?? []).map((b: any) => ({
-            batchNumber: b.batchNumber ?? b.batch_number ?? '—',
-            manufacturingDate: (b.manufacturingDate ?? b.mfg_date ?? new Date()).toString().split('T')[0],
-            expiryDate: (b.expiryDate ?? b.exp_date ?? new Date()).toString().split('T')[0],
-            quantity: b.quantity ?? 0,
-          })),
-          totalQuantity: it.totalQuantity ?? it.quantity ?? 0,
-          shipperQuantity: it.shipperQuantity ?? it.packagesCount ?? it.packages_count ?? 1,
-          grossWeight: it.grossWeight ?? it.gross_weight ?? 0,
-          netWeight: it.netWeight ?? it.net_weight ?? 0,
-        }))
-      }));
-
-      setPackingLists(normalized);
-    } catch (error) {
-      console.error('Error fetching packing lists:', error);
-      // Fallback to mock data if API fails
-      setPackingLists([
-        {
-          id: '1',
-          packingListNumber: 'PL/2024/001',
-          orderId: '1',
-          orderNumber: 'ORD/2024/001',
-          invoiceId: '1',
-          invoiceNumber: 'INV/2024/001',
-          customerName: 'Cambodia Pharma Ltd',
-          customerCountry: 'Cambodia',
-          shippingDate: '2024-12-15',
-          manufacturingSite: 'Site A - India',
-          status: 'confirmed',
-          totalShippers: 50,
-          totalGrossWeight: 1250.5,
-          totalNetWeight: 1200,
-          items: [
-            {
-              productId: '1',
-              productName: 'Item 1',
-              brandName: 'Brand A',
-              genericName: 'Generic 1',
-              strength: '100mg',
-              packSize: '100ml',
-              batches: [
-                { batchNumber: 'BATCH-001', manufacturingDate: '2023-01-01', expiryDate: '2024-01-01', quantity: 100 },
-                { batchNumber: 'BATCH-002', manufacturingDate: '2023-02-01', expiryDate: '2024-02-01', quantity: 50 }
-              ],
-              totalQuantity: 150,
-              shipperQuantity: 10,
-              grossWeight: 25.5,
-              netWeight: 24,
-            }
-          ]
+  
+  // fetch orders and invoices when opening create form
+  useEffect(() => {
+    if (showCreateForm) {
+      (async () => {
+        try {
+          const [ordersData, invoicesData] = await Promise.all([
+            api.get<{ id: string; orderNumber: string }[]>('/orders'),
+            api.get<{ id: string; invoiceNumber: string }[]>('/invoices')
+          ]);
+          // deduplicate by id (fallback to number) to avoid duplicate dropdown entries
+          setOrders(uniqueBy(ordersData, (o: any) => o.id ?? String(o.orderNumber ?? '')));
+          setInvoices(uniqueBy(invoicesData, (i: any) => i.id ?? String(i.invoiceNumber ?? '')));
+        } catch (err) {
+          console.error('Error fetching orders/invoices:', err);
         }
-      ]);
-    } finally {
-      setLoading(false);
+      })();
+    }
+  }, [showCreateForm]);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.post('/packing-list/generate', { orderId: newOrderId, invoiceId: newInvoiceId, items: [] });
+      setShowCreateForm(false);
+      fetchPackingLists();
+    } catch (error) {
+      console.error('Create packing list error', error);
+    }
+  };
+  
+  // Fetch full packing list details for modal
+  const handleViewDetails = async (id: string) => {
+    try {
+      const detail = await api.get<PackingList>(`/packing-list/${id}`);
+      setSelectedPackingList(detail);
+      setShowDetails(true);
+    } catch (err) {
+      console.error('Error fetching packing list details:', err);
     }
   };
 
@@ -206,6 +194,36 @@ const PackingLists: React.FC = () => {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
+        {showCreateForm && (
+          <form onSubmit={handleCreate} className="bg-gray-800 p-4 rounded space-y-2">
+            <h2 className="text-xl text-white">New Packing List</h2>
+            {/* select order */}
+            <select
+              value={newOrderId}
+              onChange={e => setNewOrderId(e.target.value)}
+              className="p-2 w-full"
+            >
+              <option value="">Select Order</option>
+              {orders.map(o => (
+                <option key={o.id} value={o.id}>{o.orderNumber}</option>
+              ))}
+            </select>
+            <select
+              value={newInvoiceId}
+              onChange={e => setNewInvoiceId(e.target.value)}
+              className="p-2 w-full"
+            >
+              <option value="">Select Invoice (optional)</option>
+              {invoices.map(i => (
+                <option key={i.id} value={i.id}>{i.invoiceNumber}</option>
+              ))}
+            </select>
+            <div className="flex space-x-2">
+              <button type="submit" className="btn btn-primary">Create</button>
+              <button type="button" className="btn btn-secondary" onClick={() => setShowCreateForm(false)}>Cancel</button>
+            </div>
+          </form>
+        )}
         <div>
           <h1 className="text-3xl font-bold text-white">Packing Lists</h1>
           <p className="text-gray-400 mt-1">Manage shipment packing lists with batch details</p>
@@ -385,10 +403,7 @@ const PackingLists: React.FC = () => {
                     <td className="p-4">
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => {
-                            setSelectedPackingList(packingList);
-                            setShowDetails(true);
-                          }}
+                          onClick={() => handleViewDetails(packingList.id)}
                           className="p-2 rounded-lg hover:bg-white/10 transition-colors"
                           title="View Details"
                         >
@@ -451,7 +466,7 @@ const PackingLists: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-medium text-white mb-3">Product Details with Batch Information</h3>
                   <div className="space-y-4">
-                    {selectedPackingList.items.map((item, index) => (
+                    {selectedPackingList.items?.map((item, index) => (
                       <div key={index} className="bg-white/5 rounded-lg p-4">
                         <div className="flex justify-between items-start mb-3">
                           <div>
