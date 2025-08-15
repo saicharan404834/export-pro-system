@@ -15,9 +15,9 @@ fi
 echo "✅ Found vercel.json"
 echo "📁 Deploying from: $(pwd)"
 
-# Deploy to Vercel with correct project name
+# Deploy to Vercel (project name will be auto-detected from repo)
 echo "🚀 Deploying to Vercel..."
-vercel --prod --name "bls-exportpro" --yes
+vercel --prod --yes
 
 echo ""
 echo "🎉 DEPLOYMENT COMPLETE!"

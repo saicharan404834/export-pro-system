@@ -25,10 +25,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "functions": {
-    "bls-exportpro/backend/vercel.ts": {
-      "maxDuration": 60
-    }
   }
 }
