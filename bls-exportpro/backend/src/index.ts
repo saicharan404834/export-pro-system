@@ -19,7 +19,7 @@ import documentRoutes from './routes/document.routes';
 import misReportsRoutes from './routes/mis-reports.routes';
 
 import { errorHandler, notFound } from './middleware/error.middleware';
-import { reportSchedulerService } from './services/scheduler/report-scheduler.service';
+// import { reportSchedulerService } from './services/scheduler/report-scheduler.service';
 import { initDatabase } from './config/sqlite.config';
 import invoiceGeneratorRoutes from './routes/invoice-generator.routes';
 import orderCreationRoutes from './routes/order-creation.routes';

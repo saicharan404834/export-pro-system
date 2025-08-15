@@ -2,5 +2,5 @@
  npm run dev
 
 
-# cd bls-exportpro/frontend
-# npm run dev
+ cd bls-exportpro/frontend
+ npm run dev
