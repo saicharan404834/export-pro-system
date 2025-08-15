@@ -1,0 +1,10 @@
+{
+  "name": "export-pro-system",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd bls-exportpro/frontend && npm install && npm run build",
+    "vercel-build": "cd bls-exportpro/frontend && npm install && npm run build && cd ../backend && npm install && npm run build"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
