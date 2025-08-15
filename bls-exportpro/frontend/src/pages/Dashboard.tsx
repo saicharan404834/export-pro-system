@@ -167,11 +167,11 @@ const Dashboard: React.FC = () => {
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
-                label={({ cx, cy, midAngle, innerRadius, outerRadius, name, value }) => {
+                label={({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
                   const RADIAN = Math.PI / 180;
                   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                  const x = cx + radius * Math.cos(-(midAngle || 0) * RADIAN);
+                  const y = cy + radius * Math.sin(-(midAngle || 0) * RADIAN);
                   
                   return (
                     <text 
@@ -237,7 +237,7 @@ const Dashboard: React.FC = () => {
                 backdropFilter: 'blur(8px)',
                 color: 'white'
               }}
-              formatter={(value: any, name: any) => [value, 'Orders']}
+              formatter={(value: any) => [value, 'Orders']}
             />
             <Bar 
               dataKey="count" 

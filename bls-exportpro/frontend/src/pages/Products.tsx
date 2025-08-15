@@ -5,10 +5,8 @@ import { api } from '../services/api';
 import {
   Plus,
   Search,
-  Filter,
   Package,
   Edit,
-  Trash2,
   FileText,
   Shield,
   Calendar,

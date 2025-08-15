@@ -167,25 +167,25 @@ const Invoices: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleDownloadTemplate = async () => {
-    try {
-      const response = await fetch('/api/invoices/import/template');
-      if (!response.ok) throw new Error('Failed to download template');
+  // const handleDownloadTemplate = async () => {
+  //   try {
+  //     const response = await fetch('/api/invoices/import/template');
+  //     if (!response.ok) throw new Error('Failed to download template');
       
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'invoice-import-template.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Error downloading template:', error);
-      alert('Error downloading template. Please try again.');
-    }
-  };
+  //     const blob = await response.blob();
+  //     const url = window.URL.createObjectURL(blob);
+  //     const a = document.createElement('a');
+  //     a.href = url;
+  //     a.download = 'invoice-import-template.xlsx';
+  //     document.body.appendChild(a);
+  //     a.click();
+  //     window.URL.revokeObjectURL(url);
+  //     document.body.removeChild(a);
+  //   } catch (error) {
+  //     console.error('Error downloading template:', error);
+  //     alert('Error downloading template. Please try again.');
+  //   }
+  // };
 
   const parseExcelFile = (file: File): Promise<ImportData[]> => {
     return new Promise((resolve, reject) => {
@@ -649,7 +649,7 @@ const Invoices: React.FC = () => {
                   </label>
                   <select
                     className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white/40"
-                    onChange={(e) => {
+                    onChange={() => {
                       // Handle order selection
                     }}
                   >
