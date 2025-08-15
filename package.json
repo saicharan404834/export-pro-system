@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "cd bls-exportpro/frontend && npm install && npm run build",
-    "vercel-build": "cd bls-exportpro/frontend && npm install && npm run build && cd ../shared/types && npm install && cd ../../backend && npm install && npm run build && cd .. && cp -r bls-exportpro/frontend/dist/* public/"
+    "vercel-build": "cd bls-exportpro/frontend && npm install && npm run build && cd ../shared/types && npm install && cd ../../backend && npm install && npm run build && cd ../.. && cp -r bls-exportpro/frontend/dist/* public/"
   },
   "dependencies": {},
   "devDependencies": {}
