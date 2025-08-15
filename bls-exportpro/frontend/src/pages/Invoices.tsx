@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GlassCard } from '../components/ui/GlassCard';
-import { StatusBadge } from '../components/ui/StatusBadge';
 import { Button } from '../components/Button';
 import { ImportPreviewModal } from '../components/ImportPreviewModal';
 import { api } from '../services/api';
@@ -11,15 +10,11 @@ import {
   Eye,
   Plus,
   Search,
-  Filter,
   FileSpreadsheet,
   CheckCircle,
   Clock,
   AlertCircle,
-  DollarSign,
   Calendar,
-  Building,
-  Package,
   Upload
 } from 'lucide-react';
 import { motion } from 'framer-motion';

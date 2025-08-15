@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { GlassCard } from './ui/GlassCard';
 import { Button } from './Button';
-import { X, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, CheckCircle } from 'lucide-react';
 
 interface ImportPreviewModalProps {
   isOpen: boolean;

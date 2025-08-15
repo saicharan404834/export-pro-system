@@ -14,9 +14,13 @@ npm run build
 
 # Create _redirects file for SPA routing
 echo "📝 Creating SPA redirects..."
-cat > dist/_redirects << EOF
+if [ -d "dist" ]; then
+  cat > dist/_redirects << EOF
 /*    /index.html   200
 EOF
+else
+  echo "⚠️  Warning: dist directory not found, skipping redirects file creation"
+fi
 
 echo "✅ Frontend build completed successfully!"
 echo "🎯 Ready for deployment!"

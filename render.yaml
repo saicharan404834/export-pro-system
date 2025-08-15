@@ -5,7 +5,7 @@ services:
     name: bls-exportpro-backend
     env: node
     plan: free
-    buildCommand: cd bls-exportpro/backend && chmod +x build.sh && ./build.sh
+    buildCommand: cd bls-exportpro/backend && npm install && npm run build
     startCommand: cd bls-exportpro/backend && npm start
     envVars:
       - key: NODE_ENV
@@ -22,7 +22,7 @@ services:
   - type: web
     name: bls-exportpro-frontend
     env: static
-    buildCommand: cd bls-exportpro/frontend && chmod +x build.sh && ./build.sh
+    buildCommand: cd bls-exportpro/frontend && npm install && npm run build
     staticPublishPath: bls-exportpro/frontend/dist
     routes:
       - type: rewrite

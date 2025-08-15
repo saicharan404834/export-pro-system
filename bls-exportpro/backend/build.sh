@@ -6,7 +6,7 @@ echo "🚀 Starting production build..."
 
 # Install dependencies
 echo "📦 Installing dependencies..."
-npm install --production
+npm install
 
 # Build TypeScript
 echo "🔨 Building TypeScript..."
