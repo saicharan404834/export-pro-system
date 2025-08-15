@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "bls-exportpro/frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    },
+    {
+      "src": "bls-exportpro/backend/vercel.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "bls-exportpro/backend/vercel.ts"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "bls-exportpro/frontend/dist/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "bls-exportpro/backend/vercel.ts": {
+      "maxDuration": 60
+    }
+  }
+}
