@@ -24,7 +24,13 @@ export const importInvoices = asyncHandler(async (
   res: Response,
   next: NextFunction
 ) => {
-  const result = await invoiceService.importInvoices(req.body.invoices);
+  // Ensure invoiceDate is provided for all invoices
+  const invoicesWithDate = req.body.invoices.map(invoice => ({
+    ...invoice,
+    invoiceDate: invoice.invoiceDate || new Date().toISOString().split('T')[0]
+  }));
+  
+  const result = await invoiceService.importInvoices(invoicesWithDate);
   
   res.status(200).json({
     status: 'success',
