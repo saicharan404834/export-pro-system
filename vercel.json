@@ -12,6 +12,7 @@
       "src": "bls-exportpro/backend/vercel.ts",
       "use": "@vercel/node",
       "config": {
+        "maxDuration": 30,
         "includeFiles": [
           "bls-exportpro/shared/**",
           "bls-exportpro/backend/data/**",
@@ -50,10 +51,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "functions": {
-    "bls-exportpro/backend/vercel.ts": {
-      "maxDuration": 30
-    }
   }
 }
