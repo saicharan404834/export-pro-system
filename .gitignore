@@ -104,3 +104,4 @@ docs/.vuepress/dist/
 # PDF files in root
 *.pdf
 !docs-info/*.pdf
+.vercel
