@@ -8,15 +8,15 @@
   "routes": [
     {
       "src": "/health",
-      "dest": "/api"
+      "dest": "/api/index.ts"
     },
     {
       "src": "/api/(.*)",
-      "dest": "/api"
+      "dest": "/api/index.ts"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "/api"
+      "dest": "/api/index.ts"
     },
     {
       "src": "/(.*)",
