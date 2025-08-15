@@ -10,7 +10,13 @@
     },
     {
       "src": "bls-exportpro/backend/vercel.ts",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "bls-exportpro/shared/**",
+          "bls-exportpro/backend/data/**"
+        ]
+      }
     }
   ],
   "routes": [
