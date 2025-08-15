@@ -1,51 +1,26 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "bls-exportpro/frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
-    {
-      "src": "bls-exportpro/backend/vercel.ts",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 30,
-        "includeFiles": [
-          "bls-exportpro/shared/**",
-          "bls-exportpro/backend/data/**",
-          "bls-exportpro/backend/src/**",
-          "bls-exportpro/backend/dist/**",
-          "bls-exportpro/backend/uploads/**",
-          "bls-exportpro/backend/package.json"
-        ]
-      }
+  "functions": {
+    "bls-exportpro/backend/vercel.ts": {
+      "maxDuration": 30
     }
-  ],
+  },
   "routes": [
     {
       "src": "/health",
-      "dest": "bls-exportpro/backend/vercel.ts"
+      "dest": "/api/bls-exportpro/backend/vercel.ts"
     },
     {
       "src": "/api/(.*)",
-      "dest": "bls-exportpro/backend/vercel.ts"
+      "dest": "/api/bls-exportpro/backend/vercel.ts"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "bls-exportpro/backend/vercel.ts"
-    },
-    {
-      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|map|json))",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
+      "dest": "/api/bls-exportpro/backend/vercel.ts"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/$1"
     }
   ],
   "env": {
